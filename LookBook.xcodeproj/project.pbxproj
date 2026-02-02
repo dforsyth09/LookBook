@@ -6,6 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BA05E8432F314E5C001524DA /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E8422F314E5C001524DA /* Kingfisher */; };
+		BA05E8462F314E75001524DA /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E8452F314E75001524DA /* ConfettiSwiftUI */; };
+		BA05E8492F314EA6001524DA /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E8482F314EA6001524DA /* Auth */; };
+		BA05E84B2F314EA6001524DA /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E84A2F314EA6001524DA /* Functions */; };
+		BA05E84D2F314EA6001524DA /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E84C2F314EA6001524DA /* PostgREST */; };
+		BA05E84F2F314EA6001524DA /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E84E2F314EA6001524DA /* Realtime */; };
+		BA05E8512F314EA6001524DA /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E8502F314EA6001524DA /* Storage */; };
+		BA05E8532F314EA6001524DA /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = BA05E8522F314EA6001524DA /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		BA05E80B2F3100A8001524DA /* LookBook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LookBook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +34,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BA05E8462F314E75001524DA /* ConfettiSwiftUI in Frameworks */,
+				BA05E8432F314E5C001524DA /* Kingfisher in Frameworks */,
+				BA05E8512F314EA6001524DA /* Storage in Frameworks */,
+				BA05E84B2F314EA6001524DA /* Functions in Frameworks */,
+				BA05E8532F314EA6001524DA /* Supabase in Frameworks */,
+				BA05E84F2F314EA6001524DA /* Realtime in Frameworks */,
+				BA05E8492F314EA6001524DA /* Auth in Frameworks */,
+				BA05E84D2F314EA6001524DA /* PostgREST in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +52,7 @@
 			isa = PBXGroup;
 			children = (
 				BA05E80D2F3100A8001524DA /* LookBook */,
+				BA05E8472F314EA6001524DA /* Frameworks */,
 				BA05E80C2F3100A8001524DA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +63,13 @@
 				BA05E80B2F3100A8001524DA /* LookBook.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BA05E8472F314EA6001524DA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +92,14 @@
 			);
 			name = LookBook;
 			packageProductDependencies = (
+				BA05E8422F314E5C001524DA /* Kingfisher */,
+				BA05E8452F314E75001524DA /* ConfettiSwiftUI */,
+				BA05E8482F314EA6001524DA /* Auth */,
+				BA05E84A2F314EA6001524DA /* Functions */,
+				BA05E84C2F314EA6001524DA /* PostgREST */,
+				BA05E84E2F314EA6001524DA /* Realtime */,
+				BA05E8502F314EA6001524DA /* Storage */,
+				BA05E8522F314EA6001524DA /* Supabase */,
 			);
 			productName = LookBook;
 			productReference = BA05E80B2F3100A8001524DA /* LookBook.app */;
@@ -94,6 +129,11 @@
 			);
 			mainGroup = BA05E8022F3100A8001524DA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				BA05E8412F314E5C001524DA /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				BA05E8442F314E75001524DA /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BA05E80C2F3100A8001524DA /* Products */;
 			projectDirPath = "";
@@ -269,6 +309,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.danology.LookBook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -301,6 +345,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.danology.LookBook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -332,6 +380,76 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+		BA05E8412F314E5C001524DA /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.6.2;
+			};
+		};
+		BA05E8442F314E75001524DA /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BA05E8422F314E5C001524DA /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8412F314E5C001524DA /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		BA05E8452F314E75001524DA /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8442F314E75001524DA /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
+		};
+		BA05E8482F314EA6001524DA /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		BA05E84A2F314EA6001524DA /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		BA05E84C2F314EA6001524DA /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		BA05E84E2F314EA6001524DA /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		BA05E8502F314EA6001524DA /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		BA05E8522F314EA6001524DA /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BA05E8402F314DF9001524DA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BA05E8032F3100A8001524DA /* Project object */;
 }

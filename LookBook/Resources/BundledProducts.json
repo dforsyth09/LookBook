@@ -1,0 +1,142 @@
+[
+  {
+    "title": "Floral Print Maxi Dress",
+    "imageUrl": "https://picsum.photos/seed/dress1/400/600",
+    "price": 34.99,
+    "category": "dresses",
+    "brand": "Garden Collection"
+  },
+  {
+    "title": "Navy Blue Wrap Dress",
+    "imageUrl": "https://picsum.photos/seed/dress2/400/600",
+    "price": 42.99,
+    "category": "dresses",
+    "brand": "Classic Style"
+  },
+  {
+    "title": "Red Cocktail Dress",
+    "imageUrl": "https://picsum.photos/seed/dress3/400/600",
+    "price": 38.99,
+    "category": "dresses",
+    "brand": "Evening Elegance"
+  },
+  {
+    "title": "Striped Summer Dress",
+    "imageUrl": "https://picsum.photos/seed/dress4/400/600",
+    "price": 29.99,
+    "category": "dresses",
+    "brand": "Sunny Days"
+  },
+  {
+    "title": "Soft Pink Blouse",
+    "imageUrl": "https://picsum.photos/seed/top1/400/600",
+    "price": 24.99,
+    "category": "tops",
+    "brand": "Comfort Basics"
+  },
+  {
+    "title": "White Linen Top",
+    "imageUrl": "https://picsum.photos/seed/top2/400/600",
+    "price": 27.99,
+    "category": "tops",
+    "brand": "Natural Fibers"
+  },
+  {
+    "title": "Cozy Knit Sweater",
+    "imageUrl": "https://picsum.photos/seed/top3/400/600",
+    "price": 36.99,
+    "category": "tops",
+    "brand": "Warm & Cozy"
+  },
+  {
+    "title": "Floral Print Blouse",
+    "imageUrl": "https://picsum.photos/seed/top4/400/600",
+    "price": 22.99,
+    "category": "tops",
+    "brand": "Garden Collection"
+  },
+  {
+    "title": "Blue Silk Tunic",
+    "imageUrl": "https://picsum.photos/seed/top5/400/600",
+    "price": 31.99,
+    "category": "tops",
+    "brand": "Classic Style"
+  },
+  {
+    "title": "Classic Blue Jeans",
+    "imageUrl": "https://picsum.photos/seed/pants1/400/600",
+    "price": 39.99,
+    "category": "pants",
+    "brand": "Denim Co."
+  },
+  {
+    "title": "Black Dress Pants",
+    "imageUrl": "https://picsum.photos/seed/pants2/400/600",
+    "price": 34.99,
+    "category": "pants",
+    "brand": "Office Ready"
+  },
+  {
+    "title": "Khaki Casual Trousers",
+    "imageUrl": "https://picsum.photos/seed/pants3/400/600",
+    "price": 32.99,
+    "category": "pants",
+    "brand": "Comfort Basics"
+  },
+  {
+    "title": "Navy Wide Leg Pants",
+    "imageUrl": "https://picsum.photos/seed/pants4/400/600",
+    "price": 36.99,
+    "category": "pants",
+    "brand": "Classic Style"
+  },
+  {
+    "title": "Floral Palazzo Pants",
+    "imageUrl": "https://picsum.photos/seed/pants5/400/600",
+    "price": 28.99,
+    "category": "pants",
+    "brand": "Garden Collection"
+  },
+  {
+    "title": "Black Ballet Flats",
+    "imageUrl": "https://picsum.photos/seed/shoe1/400/600",
+    "price": 29.99,
+    "category": "shoes",
+    "brand": "Step Easy"
+  },
+  {
+    "title": "Nude Low Heels",
+    "imageUrl": "https://picsum.photos/seed/shoe2/400/600",
+    "price": 44.99,
+    "category": "shoes",
+    "brand": "Elegant Steps"
+  },
+  {
+    "title": "White Sneakers",
+    "imageUrl": "https://picsum.photos/seed/shoe3/400/600",
+    "price": 38.99,
+    "category": "shoes",
+    "brand": "Comfort Walk"
+  },
+  {
+    "title": "Brown Leather Sandals",
+    "imageUrl": "https://picsum.photos/seed/shoe4/400/600",
+    "price": 33.99,
+    "category": "shoes",
+    "brand": "Natural Fibers"
+  },
+  {
+    "title": "Gold Strappy Heels",
+    "imageUrl": "https://picsum.photos/seed/shoe5/400/600",
+    "price": 47.99,
+    "category": "shoes",
+    "brand": "Evening Elegance"
+  },
+  {
+    "title": "Emerald Green Maxi Dress",
+    "imageUrl": "https://picsum.photos/seed/dress5/400/600",
+    "price": 45.99,
+    "category": "dresses",
+    "brand": "Evening Elegance"
+  }
+]
