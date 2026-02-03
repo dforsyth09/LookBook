@@ -9,11 +9,24 @@ struct ProductCard: View {
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 0) {
-                CachedImageView(url: product.imageUrl)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 360)
-                    .contentShape(Rectangle())
-                    .clipped()
+                ZStack(alignment: .topLeading) {
+                    CachedImageView(url: product.imageUrl)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 360)
+                        .contentShape(Rectangle())
+                        .clipped()
+
+                    if product.isOnSale {
+                        Text("SALE")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.red)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .padding(12)
+                    }
+                }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(product.title)
@@ -27,17 +40,27 @@ struct ProductCard: View {
                             .foregroundStyle(.secondary)
                     }
 
+                    if let colour = product.colour {
+                        Text(colour)
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                    }
+
                     Text("$\(product.price, specifier: "%.2f")")
                         .font(.system(size: 24, weight: .semibold))
                         .foregroundStyle(.primary)
 
-                    Text("View Details")
-                        .font(.system(size: 22, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(accentColor)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 18, weight: .bold))
+                        Text("Shop This Look")
+                            .font(.system(size: 22, weight: .bold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(accentColor)
+                    .foregroundStyle(.white)
+                    .clipShape(Capsule())
                 }
                 .padding(16)
             }

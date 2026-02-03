@@ -9,6 +9,8 @@ final class CacheManager {
         self.modelContext = modelContext
     }
 
+    // MARK: - Products
+
     func getProducts(category: String?, page: Int, pageSize: Int = 20) -> [CachedProduct] {
         var descriptor = FetchDescriptor<CachedProduct>(
             sortBy: [SortDescriptor(\.fetchedAt, order: .reverse)]
@@ -29,6 +31,16 @@ final class CacheManager {
         return (try? modelContext.fetchCount(descriptor)) ?? 0
     }
 
+    func product(byId id: UUID) -> CachedProduct? {
+        var descriptor = FetchDescriptor<CachedProduct>(
+            predicate: #Predicate { $0.id == id }
+        )
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first
+    }
+
+    // MARK: - Bag
+
     func addToBag(product: CachedProduct, size: String) {
         let pid = product.id
         let descriptor = FetchDescriptor<BagItem>(
@@ -37,7 +49,9 @@ final class CacheManager {
         let existing = (try? modelContext.fetchCount(descriptor)) ?? 0
         if existing > 0 { return }
 
+        let userId = AuthService.shared.currentUser?.id
         let item = BagItem(
+            userId: userId,
             productId: product.id,
             productTitle: product.title,
             productImageUrl: product.imageUrl,
@@ -46,19 +60,28 @@ final class CacheManager {
         )
         modelContext.insert(item)
         try? modelContext.save()
+
+        // Sync to Supabase in background
+        if let userId {
+            Task {
+                await SupabaseService.shared.addCartItem(
+                    id: item.id,
+                    userId: userId,
+                    productId: product.id,
+                    selectedSize: size
+                )
+            }
+        }
     }
 
-    func toggleHeart(product: CachedProduct) {
-        product.isHearted.toggle()
+    func removeBagItem(_ item: BagItem) {
+        let itemId = item.id
+        modelContext.delete(item)
         try? modelContext.save()
-    }
 
-    func getWishListItems() -> [CachedProduct] {
-        let descriptor = FetchDescriptor<CachedProduct>(
-            predicate: #Predicate { $0.isHearted },
-            sortBy: [SortDescriptor(\.fetchedAt, order: .reverse)]
-        )
-        return (try? modelContext.fetch(descriptor)) ?? []
+        Task {
+            await SupabaseService.shared.removeCartItem(id: itemId)
+        }
     }
 
     func getBagItems() -> [BagItem] {
@@ -74,6 +97,58 @@ final class CacheManager {
             modelContext.delete(item)
         }
         try? modelContext.save()
+
+        if let userId = AuthService.shared.currentUser?.id {
+            Task {
+                await SupabaseService.shared.clearCart(userId: userId)
+            }
+        }
+    }
+
+    // MARK: - Wishlist
+
+    func toggleHeart(product: CachedProduct) {
+        let wasHearted = product.isHearted
+        product.isHearted.toggle()
+        try? modelContext.save()
+
+        guard let userId = AuthService.shared.currentUser?.id else { return }
+
+        if wasHearted {
+            // Was hearted, now removing
+            let productId = product.id
+            let descriptor = FetchDescriptor<WishlistItem>(
+                predicate: #Predicate { $0.productId == productId }
+            )
+            if let wishlistItem = try? modelContext.fetch(descriptor).first {
+                let itemId = wishlistItem.id
+                modelContext.delete(wishlistItem)
+                try? modelContext.save()
+                Task {
+                    await SupabaseService.shared.removeWishlistItem(id: itemId)
+                }
+            }
+        } else {
+            // Wasn't hearted, now adding
+            let wishlistItem = WishlistItem(userId: userId, productId: product.id)
+            modelContext.insert(wishlistItem)
+            try? modelContext.save()
+            Task {
+                await SupabaseService.shared.addWishlistItem(
+                    id: wishlistItem.id,
+                    userId: userId,
+                    productId: product.id
+                )
+            }
+        }
+    }
+
+    func getWishListItems() -> [CachedProduct] {
+        let descriptor = FetchDescriptor<CachedProduct>(
+            predicate: #Predicate { $0.isHearted },
+            sortBy: [SortDescriptor(\.fetchedAt, order: .reverse)]
+        )
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     func clearWishList() {
@@ -81,16 +156,23 @@ final class CacheManager {
         for item in items {
             item.isHearted = false
         }
+
+        let wishlistDescriptor = FetchDescriptor<WishlistItem>()
+        if let wishlistItems = try? modelContext.fetch(wishlistDescriptor) {
+            for item in wishlistItems {
+                modelContext.delete(item)
+            }
+        }
         try? modelContext.save()
+
+        if let userId = AuthService.shared.currentUser?.id {
+            Task {
+                await SupabaseService.shared.clearWishlist(userId: userId)
+            }
+        }
     }
 
-    func product(byId id: UUID) -> CachedProduct? {
-        var descriptor = FetchDescriptor<CachedProduct>(
-            predicate: #Predicate { $0.id == id }
-        )
-        descriptor.fetchLimit = 1
-        return try? modelContext.fetch(descriptor).first
-    }
+    // MARK: - Seeding
 
     func seedBundledProductsIfNeeded() {
         let count = (try? modelContext.fetchCount(FetchDescriptor<CachedProduct>())) ?? 0
@@ -132,20 +214,30 @@ final class CacheManager {
                 predicate: #Predicate { $0.source == rpSource && $0.sourceId == rpSourceId }
             )
             descriptor.fetchLimit = 1
-            let exists = (try? modelContext.fetchCount(descriptor)) ?? 0
-            if exists > 0 { continue }
 
-            let product = CachedProduct(
-                id: rp.id,
-                source: rp.source,
-                sourceId: rp.sourceId,
-                title: rp.title,
-                imageUrl: rp.imageUrl,
-                price: rp.price,
-                category: rp.category,
-                brand: rp.brand
-            )
-            modelContext.insert(product)
+            if let existing = try? modelContext.fetch(descriptor).first {
+                // Update existing product with new fields
+                existing.additionalImageUrls = rp.additionalImageUrls ?? []
+                existing.colour = rp.colour
+                existing.isOnSale = rp.isOnSale ?? false
+                existing.sourceUrl = rp.sourceUrl
+            } else {
+                let product = CachedProduct(
+                    id: rp.id,
+                    source: rp.source,
+                    sourceId: rp.sourceId,
+                    title: rp.title,
+                    imageUrl: rp.imageUrl,
+                    additionalImageUrls: rp.additionalImageUrls ?? [],
+                    price: rp.price,
+                    category: rp.category,
+                    brand: rp.brand,
+                    colour: rp.colour,
+                    isOnSale: rp.isOnSale ?? false,
+                    sourceUrl: rp.sourceUrl
+                )
+                modelContext.insert(product)
+            }
         }
         try? modelContext.save()
     }

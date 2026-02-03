@@ -7,6 +7,8 @@ struct LookBookApp: App {
         let schema = Schema([
             CachedProduct.self,
             BagItem.self,
+            User.self,
+            WishlistItem.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
@@ -17,12 +19,15 @@ struct LookBookApp: App {
     }()
 
     @State private var showWelcome = true
+    @State private var isInitialized = false
 
     var body: some Scene {
         WindowGroup {
             ZStack {
-                MainTabView()
-                    .opacity(showWelcome ? 0 : 1)
+                if isInitialized {
+                    MainTabView()
+                        .opacity(showWelcome ? 0 : 1)
+                }
 
                 if showWelcome {
                     WelcomeScreen {
@@ -36,10 +41,12 @@ struct LookBookApp: App {
             .preferredColorScheme(.light)
             .statusBarHidden(true)
             .persistentSystemOverlays(.hidden)
-            .onAppear {
+            .task {
                 setupImageCache()
+                await initializeAuth()
                 seedDataIfNeeded()
                 syncFromSupabase()
+                isInitialized = true
             }
         }
         .modelContainer(sharedModelContainer)
@@ -47,10 +54,16 @@ struct LookBookApp: App {
 
     private func setupImageCache() {
         let cache = URLCache(
-            memoryCapacity: 50 * 1024 * 1024,   // 50 MB memory
-            diskCapacity: 500 * 1024 * 1024      // 500 MB disk
+            memoryCapacity: 50 * 1024 * 1024,
+            diskCapacity: 500 * 1024 * 1024
         )
         URLCache.shared = cache
+    }
+
+    @MainActor
+    private func initializeAuth() async {
+        let context = sharedModelContainer.mainContext
+        await AuthService.shared.initialize(modelContext: context)
     }
 
     @MainActor
@@ -74,6 +87,9 @@ struct LookBookApp: App {
 
 struct MainTabView: View {
     private let theme = ThemeManager.shared
+    private var isAdmin: Bool { AuthService.shared.isAdmin }
+
+    @State private var showDeviceId = false
 
     var body: some View {
         TabView {
@@ -86,7 +102,20 @@ struct MainTabView: View {
             Tab("Wish List", systemImage: "heart.fill") {
                 WishListScreen()
             }
+            if isAdmin {
+                Tab("Admin", systemImage: "person.badge.key.fill") {
+                    AdminDashboardScreen()
+                }
+            }
         }
         .tint(theme.accentColor)
+        .alert("Device ID", isPresented: $showDeviceId) {
+            Button("Copy") {
+                UIPasteboard.general.string = AuthService.shared.deviceId
+            }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(AuthService.shared.deviceId)
+        }
     }
 }

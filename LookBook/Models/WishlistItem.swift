@@ -2,14 +2,10 @@ import Foundation
 import SwiftData
 
 @Model
-final class BagItem {
+final class WishlistItem {
     var id: UUID
     var userId: UUID?
     var productId: UUID
-    var productTitle: String
-    var productImageUrl: String
-    var productPrice: Double
-    var selectedSize: String
     var addedAt: Date
     var syncedToSupabase: Bool
 
@@ -17,20 +13,12 @@ final class BagItem {
         id: UUID = UUID(),
         userId: UUID? = nil,
         productId: UUID,
-        productTitle: String,
-        productImageUrl: String,
-        productPrice: Double,
-        selectedSize: String,
         addedAt: Date = Date(),
         syncedToSupabase: Bool = false
     ) {
         self.id = id
         self.userId = userId
         self.productId = productId
-        self.productTitle = productTitle
-        self.productImageUrl = productImageUrl
-        self.productPrice = productPrice
-        self.selectedSize = selectedSize
         self.addedAt = addedAt
         self.syncedToSupabase = syncedToSupabase
     }

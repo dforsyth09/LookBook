@@ -7,8 +7,10 @@ struct BagScreen: View {
 
     @State private var showClearConfirmation = false
     @State private var navigateToProduct: CachedProduct?
+    @State private var showDeviceId = false
 
     private let theme = ThemeManager.shared
+    private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
 
     var body: some View {
         NavigationStack {
@@ -101,6 +103,23 @@ struct BagScreen: View {
                     Text("My Bag")
                         .font(.system(size: 28, weight: .bold))
                 }
+            }
+            .safeAreaInset(edge: .bottom) {
+                Text("v\(appVersion)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.tertiary)
+                    .padding(.bottom, 4)
+                    .onLongPressGesture {
+                        showDeviceId = true
+                    }
+            }
+            .alert("Device ID", isPresented: $showDeviceId) {
+                Button("Copy") {
+                    UIPasteboard.general.string = AuthService.shared.deviceId
+                }
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(AuthService.shared.deviceId)
             }
         }
     }

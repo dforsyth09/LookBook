@@ -8,6 +8,7 @@ struct WishListScreen: View {
     private var wishListItems: [CachedProduct]
 
     @State private var navigateToProduct: CachedProduct?
+    @State private var showClearConfirmation = false
 
     private let theme = ThemeManager.shared
     private let columns = [
@@ -33,31 +34,65 @@ struct WishListScreen: View {
                         Spacer()
                     }
                 } else {
-                    ScrollView(showsIndicators: false) {
-                        LazyVGrid(columns: columns, spacing: 14) {
-                            ForEach(wishListItems) { product in
-                                Button {
-                                    navigateToProduct = product
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        CachedImageView(url: product.imageUrl)
-                                            .frame(height: 200)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    VStack(spacing: 0) {
+                        ScrollView(showsIndicators: false) {
+                            LazyVGrid(columns: columns, spacing: 14) {
+                                ForEach(wishListItems) { product in
+                                    ZStack(alignment: .topTrailing) {
+                                        Button {
+                                            navigateToProduct = product
+                                        } label: {
+                                            VStack(alignment: .leading, spacing: 6) {
+                                                CachedImageView(url: product.imageUrl)
+                                                    .frame(height: 200)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                                        Text(product.title)
-                                            .font(.system(size: 18, weight: .semibold))
-                                            .lineLimit(2)
-                                            .foregroundStyle(.primary)
+                                                Text(product.title)
+                                                    .font(.system(size: 18, weight: .semibold))
+                                                    .lineLimit(2)
+                                                    .foregroundStyle(.primary)
 
-                                        Text("$\(product.price, specifier: "%.2f")")
-                                            .font(.system(size: 18, weight: .medium))
-                                            .foregroundStyle(.primary)
+                                                Text("$\(product.price, specifier: "%.2f")")
+                                                    .font(.system(size: 18, weight: .medium))
+                                                    .foregroundStyle(.primary)
+                                            }
+                                        }
+                                        .buttonStyle(.plain)
+
+                                        // Remove button
+                                        Button {
+                                            removeFromWishList(product)
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.system(size: 26))
+                                                .foregroundStyle(.white, .red)
+                                                .shadow(radius: 2)
+                                        }
+                                        .padding(6)
                                     }
                                 }
-                                .buttonStyle(.plain)
+                            }
+                            .padding()
+                        }
+
+                        Button {
+                            showClearConfirmation = true
+                        } label: {
+                            Text("Remove All Items")
+                                .font(.system(size: 22, weight: .bold))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.red)
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .confirmationDialog("Remove all items from your wish list?", isPresented: $showClearConfirmation, titleVisibility: .visible) {
+                            Button("Remove All", role: .destructive) {
+                                CacheManager(modelContext: modelContext).clearWishList()
                             }
                         }
-                        .padding()
                     }
                 }
             }
@@ -68,11 +103,12 @@ struct WishListScreen: View {
                 ToolbarItem(placement: .principal) {
                     Text("Wish List")
                         .font(.system(size: 28, weight: .bold))
-                        .onTapGesture(count: 3) {
-                            CacheManager(modelContext: modelContext).clearWishList()
-                        }
                 }
             }
         }
+    }
+
+    private func removeFromWishList(_ product: CachedProduct) {
+        CacheManager(modelContext: modelContext).toggleHeart(product: product)
     }
 }

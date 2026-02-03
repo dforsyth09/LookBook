@@ -10,22 +10,49 @@ struct ProductDetailScreen: View {
 
     private let theme = ThemeManager.shared
 
+    private var allImageUrls: [String] {
+        [product.imageUrl] + product.additionalImageUrls
+    }
+
     var body: some View {
         ZStack {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
-                    CachedImageView(url: product.imageUrl)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 450)
-                        .clipped()
+                    // Image carousel
+                    TabView {
+                        ForEach(allImageUrls, id: \.self) { url in
+                            CachedImageView(url: url)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 450)
+                                .clipped()
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .always))
+                    .frame(height: 450)
 
                     VStack(alignment: .leading, spacing: 12) {
+                        if product.isOnSale {
+                            Text("SALE")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.red)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+
                         Text(product.title)
                             .font(.system(size: 28, weight: .bold))
 
                         if let brand = product.brand {
                             Text(brand)
                                 .font(.system(size: 20))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if let colour = product.colour {
+                            Text(colour)
+                                .font(.system(size: 18))
                                 .foregroundStyle(.secondary)
                         }
 
