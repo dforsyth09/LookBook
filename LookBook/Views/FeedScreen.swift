@@ -17,24 +17,35 @@ struct FeedScreen: View {
                 CategoryPicker(selected: $selectedCategory, accentColor: theme.accentColor)
                     .padding(.vertical, 12)
 
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 20) {
-                        ForEach(products) { product in
-                            ProductCard(
-                                product: product,
-                                accentColor: theme.accentColor,
-                                onHeart: { heartProduct(product) },
-                                onTap: { navigateToProduct = product }
-                            )
-                            .onAppear {
-                                if product.id == products.last?.id {
-                                    loadMore()
+                ScrollViewReader { proxy in
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: 20) {
+                            Color.clear
+                                .frame(height: 1)
+                                .id("top")
+
+                            ForEach(products) { product in
+                                ProductCard(
+                                    product: product,
+                                    accentColor: theme.accentColor,
+                                    onHeart: { heartProduct(product) },
+                                    onTap: { navigateToProduct = product }
+                                )
+                                .onAppear {
+                                    if product.id == products.last?.id {
+                                        loadMore()
+                                    }
                                 }
                             }
                         }
+                        .padding(.horizontal)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 20)
+                    .onChange(of: selectedCategory) { _, _ in
+                        withAnimation {
+                            proxy.scrollTo("top", anchor: .top)
+                        }
+                    }
                 }
             }
             .navigationDestination(item: $navigateToProduct) { product in

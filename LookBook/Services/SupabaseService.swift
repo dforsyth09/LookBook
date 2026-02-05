@@ -105,6 +105,7 @@ final class SupabaseService: Sendable {
     func fetchProducts(category: String? = nil, limit: Int = 50, offset: Int = 0) async -> [RemoteProduct] {
         guard isConfigured else { return [] }
 
+        // Fetch products from all sources (Catherines, Roaman's, etc.)
         var urlString = "\(projectUrl)/rest/v1/clothing_items?select=*&is_active=eq.true&order=created_at.desc&limit=\(limit)&offset=\(offset)"
         if let category, category != "all" {
             urlString += "&category=eq.\(category)"
