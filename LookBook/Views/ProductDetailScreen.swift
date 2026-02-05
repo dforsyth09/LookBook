@@ -5,10 +5,14 @@ struct ProductDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
     let product: CachedProduct
 
-    @State private var selectedSize = "L"
+    @State private var selectedSize = ""
     @State private var showConfetti = false
 
     private let theme = ThemeManager.shared
+
+    private var defaultSize: String {
+        product.category == "shoes" ? "8" : "L"
+    }
 
     private var allImageUrls: [String] {
         [product.imageUrl] + product.additionalImageUrls
@@ -31,14 +35,29 @@ struct ProductDetailScreen: View {
                     .frame(height: 450)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        if product.isOnSale {
-                            Text("SALE")
+                        // Badges
+                        HStack(spacing: 8) {
+                            if product.isOnSale {
+                                Text("SALE")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Color.red)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                            }
+                            if product.isSellingFast {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "flame.fill")
+                                    Text("SELLING FAST")
+                                }
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
-                                .background(Color.red)
+                                .background(Color.orange)
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
+                            }
                         }
 
                         Text(product.title)
@@ -63,7 +82,7 @@ struct ProductDetailScreen: View {
                             .font(.system(size: 20, weight: .semibold))
                             .padding(.top, 8)
 
-                        SizePicker(selected: $selectedSize, accentColor: theme.accentColor)
+                        SizePicker(selected: $selectedSize, accentColor: theme.accentColor, category: product.category)
 
                         Button {
                             addToBag()
@@ -111,6 +130,11 @@ struct ProductDetailScreen: View {
             }
         }
         .interactiveDismissDisabled()
+        .onAppear {
+            if selectedSize.isEmpty {
+                selectedSize = defaultSize
+            }
+        }
     }
 
     private var cacheManager: CacheManager {

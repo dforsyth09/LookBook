@@ -3,8 +3,15 @@ import SwiftUI
 struct SizePicker: View {
     @Binding var selected: String
     let accentColor: Color
+    var category: String = ""
 
-    private let sizes = ["S", "M", "L", "XL", "1X", "2X", "3X"]
+    private var sizes: [String] {
+        if category == "shoes" {
+            return ["5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"]
+        } else {
+            return ["S", "M", "L", "XL", "1X", "2X", "3X"]
+        }
+    }
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {

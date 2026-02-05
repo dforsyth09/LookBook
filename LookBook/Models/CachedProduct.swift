@@ -14,6 +14,7 @@ final class CachedProduct {
     var brand: String?
     var colour: String?
     var isOnSale: Bool
+    var isSellingFast: Bool
     var sourceUrl: String?
     var fetchedAt: Date
     var isHearted: Bool = false
@@ -30,6 +31,7 @@ final class CachedProduct {
         brand: String? = nil,
         colour: String? = nil,
         isOnSale: Bool = false,
+        isSellingFast: Bool = false,
         sourceUrl: String? = nil,
         fetchedAt: Date = Date(),
         isHearted: Bool = false
@@ -45,6 +47,7 @@ final class CachedProduct {
         self.brand = brand
         self.colour = colour
         self.isOnSale = isOnSale
+        self.isSellingFast = isSellingFast
         self.sourceUrl = sourceUrl
         self.fetchedAt = fetchedAt
         self.isHearted = isHearted

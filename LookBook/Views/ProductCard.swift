@@ -16,16 +16,31 @@ struct ProductCard: View {
                         .contentShape(Rectangle())
                         .clipped()
 
-                    if product.isOnSale {
-                        Text("SALE")
+                    // Badges
+                    VStack(alignment: .leading, spacing: 6) {
+                        if product.isOnSale {
+                            Text("SALE")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.red)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        if product.isSellingFast {
+                            HStack(spacing: 4) {
+                                Image(systemName: "flame.fill")
+                                Text("SELLING FAST")
+                            }
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .background(Color.red)
+                            .background(Color.orange)
                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .padding(12)
+                        }
                     }
+                    .padding(12)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {

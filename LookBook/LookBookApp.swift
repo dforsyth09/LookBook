@@ -19,20 +19,23 @@ struct LookBookApp: App {
     }()
 
     @State private var showWelcome = true
-    @State private var isInitialized = false
+    @State private var isDataReady = false
 
     var body: some Scene {
         WindowGroup {
             ZStack {
-                if isInitialized {
+                if isDataReady {
                     MainTabView()
                         .opacity(showWelcome ? 0 : 1)
                 }
 
                 if showWelcome {
                     WelcomeScreen {
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            showWelcome = false
+                        // Only dismiss welcome if data is ready
+                        if isDataReady {
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                showWelcome = false
+                            }
                         }
                     }
                     .transition(.opacity)
@@ -44,9 +47,13 @@ struct LookBookApp: App {
             .task {
                 setupImageCache()
                 await initializeAuth()
-                seedDataIfNeeded()
-                syncFromSupabase()
-                isInitialized = true
+                await syncFromSupabase()
+                isDataReady = true
+                // Auto-dismiss welcome after data loads
+                try? await Task.sleep(for: .seconds(1))
+                withAnimation(.easeInOut(duration: 0.4)) {
+                    showWelcome = false
+                }
             }
         }
         .modelContainer(sharedModelContainer)
@@ -67,20 +74,26 @@ struct LookBookApp: App {
     }
 
     @MainActor
-    private func seedDataIfNeeded() {
+    private func syncFromSupabase() async {
         let context = sharedModelContainer.mainContext
-        CacheManager(modelContext: context).seedBundledProductsIfNeeded()
-    }
+        let cacheManager = CacheManager(modelContext: context)
 
-    private func syncFromSupabase() {
-        Task.detached {
-            let products = await SupabaseService.shared.fetchProducts()
-            if !products.isEmpty {
-                await MainActor.run {
-                    let context = sharedModelContainer.mainContext
-                    CacheManager(modelContext: context).importProducts(products)
-                }
-            }
+        // Fetch products from all categories in parallel
+        async let dresses = SupabaseService.shared.fetchProducts(category: "dresses", limit: 100)
+        async let tops = SupabaseService.shared.fetchProducts(category: "tops", limit: 100)
+        async let shoes = SupabaseService.shared.fetchProducts(category: "shoes", limit: 100)
+        async let accessories = SupabaseService.shared.fetchProducts(category: "accessories", limit: 100)
+        async let sweaters = SupabaseService.shared.fetchProducts(category: "sweaters", limit: 100)
+        async let blouses = SupabaseService.shared.fetchProducts(category: "blouses", limit: 100)
+        async let plusSize = SupabaseService.shared.fetchProducts(category: "plus-size", limit: 100)
+
+        let allProducts = await dresses + tops + shoes + accessories + sweaters + blouses + plusSize
+
+        if !allProducts.isEmpty {
+            cacheManager.importProducts(allProducts)
+        } else {
+            // Only seed bundled products if Supabase has no data (offline fallback)
+            cacheManager.seedBundledProductsIfNeeded()
         }
     }
 }

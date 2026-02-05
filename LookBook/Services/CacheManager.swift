@@ -12,21 +12,68 @@ final class CacheManager {
     // MARK: - Products
 
     func getProducts(category: String?, page: Int, pageSize: Int = 20) -> [CachedProduct] {
+        // For "all" category, fetch mixed products from each category
+        if category == nil || category == "all" {
+            return getMixedProducts(page: page, pageSize: pageSize)
+        }
+
+        // For "hot-deals" category, fetch items on sale or selling fast
+        if category == "hot-deals" {
+            return getHotDeals(page: page, pageSize: pageSize)
+        }
+
+        let categoryFilter = category ?? "all"
         var descriptor = FetchDescriptor<CachedProduct>(
             sortBy: [SortDescriptor(\.fetchedAt, order: .reverse)]
         )
-        if let category, category != "all" {
-            descriptor.predicate = #Predicate { $0.category == category }
-        }
+        descriptor.predicate = #Predicate { $0.category == categoryFilter }
         descriptor.fetchOffset = page * pageSize
         descriptor.fetchLimit = pageSize
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    private func getHotDeals(page: Int, pageSize: Int) -> [CachedProduct] {
+        var descriptor = FetchDescriptor<CachedProduct>(
+            sortBy: [SortDescriptor(\.fetchedAt, order: .reverse)]
+        )
+        descriptor.predicate = #Predicate { $0.isOnSale || $0.isSellingFast }
+        descriptor.fetchOffset = page * pageSize
+        descriptor.fetchLimit = pageSize
+        return (try? modelContext.fetch(descriptor)) ?? []
+    }
+
+    private func getMixedProducts(page: Int, pageSize: Int) -> [CachedProduct] {
+        let categories = ["dresses", "tops", "shoes", "accessories", "sweaters", "blouses", "plus-size"]
+        let itemsPerCategory = max(pageSize / categories.count, 1)
+        let offset = page * itemsPerCategory
+
+        var mixedProducts: [CachedProduct] = []
+
+        for cat in categories {
+            var descriptor = FetchDescriptor<CachedProduct>(
+                sortBy: [SortDescriptor(\.fetchedAt, order: .reverse)]
+            )
+            let category = cat
+            descriptor.predicate = #Predicate { $0.category == category }
+            descriptor.fetchOffset = offset
+            descriptor.fetchLimit = itemsPerCategory
+
+            if let products = try? modelContext.fetch(descriptor) {
+                mixedProducts.append(contentsOf: products)
+            }
+        }
+
+        // Shuffle to randomize the order
+        return mixedProducts.shuffled()
+    }
+
     func allProductCount(category: String?) -> Int {
         var descriptor = FetchDescriptor<CachedProduct>()
-        if let category, category != "all" {
-            descriptor.predicate = #Predicate { $0.category == category }
+        if let category, category == "hot-deals" {
+            descriptor.predicate = #Predicate { $0.isOnSale || $0.isSellingFast }
+        } else if let category, category != "all" {
+            let categoryFilter = category
+            descriptor.predicate = #Predicate { $0.category == categoryFilter }
         }
         return (try? modelContext.fetchCount(descriptor)) ?? 0
     }
@@ -206,7 +253,23 @@ final class CacheManager {
         try? modelContext.save()
     }
 
+    func removeBundledProducts() {
+        let descriptor = FetchDescriptor<CachedProduct>(
+            predicate: #Predicate { $0.source == "bundled" }
+        )
+        guard let bundled = try? modelContext.fetch(descriptor) else { return }
+        for product in bundled {
+            modelContext.delete(product)
+        }
+        try? modelContext.save()
+    }
+
     func importProducts(_ remoteProducts: [SupabaseService.RemoteProduct]) {
+        // Remove bundled placeholder products once we have real data
+        if !remoteProducts.isEmpty {
+            removeBundledProducts()
+        }
+
         for rp in remoteProducts {
             let rpSource = rp.source
             let rpSourceId = rp.sourceId
@@ -220,6 +283,7 @@ final class CacheManager {
                 existing.additionalImageUrls = rp.additionalImageUrls ?? []
                 existing.colour = rp.colour
                 existing.isOnSale = rp.isOnSale ?? false
+                existing.isSellingFast = rp.isSellingFast ?? false
                 existing.sourceUrl = rp.sourceUrl
             } else {
                 let product = CachedProduct(
@@ -234,6 +298,7 @@ final class CacheManager {
                     brand: rp.brand,
                     colour: rp.colour,
                     isOnSale: rp.isOnSale ?? false,
+                    isSellingFast: rp.isSellingFast ?? false,
                     sourceUrl: rp.sourceUrl
                 )
                 modelContext.insert(product)

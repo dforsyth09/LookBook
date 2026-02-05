@@ -4,9 +4,8 @@ final class SupabaseService: Sendable {
 
     // MARK: - Configuration
 
-    // TODO: Replace with your real Supabase project values
-    private let projectUrl = "https://YOUR_PROJECT.supabase.co"
-    private let anonKey = "YOUR_ANON_KEY"
+    private let projectUrl = "https://flrfjcenzizjfssfmele.supabase.co"
+    private let anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZscmZqY2Vueml6amZzc2ZtZWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNDQ2MzQsImV4cCI6MjA4NTYyMDYzNH0.F4ahOU8I3s5VtexjVAJr3WSiwtU7YfPmzVHlfRBjU3U"
 
     static let shared = SupabaseService()
 
@@ -28,6 +27,7 @@ final class SupabaseService: Sendable {
         let brand: String?
         let colour: String?
         let isOnSale: Bool?
+        let isSellingFast: Bool?
         let sourceUrl: String?
         let isActive: Bool?
 
@@ -37,6 +37,7 @@ final class SupabaseService: Sendable {
             case imageUrl = "image_url"
             case additionalImageUrls = "additional_image_urls"
             case isOnSale = "is_on_sale"
+            case isSellingFast = "is_selling_fast"
             case sourceUrl = "source_url"
             case isActive = "is_active"
         }
@@ -117,9 +118,15 @@ final class SupabaseService: Sendable {
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return [] }
-            return (try? decoder.decode([RemoteProduct].self, from: data)) ?? []
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                print("SupabaseService: HTTP error for category \(category ?? "all")")
+                return []
+            }
+            let products = (try? decoder.decode([RemoteProduct].self, from: data)) ?? []
+            print("SupabaseService: Fetched \(products.count) products for category \(category ?? "all")")
+            return products
         } catch {
+            print("SupabaseService: Error fetching products: \(error)")
             return []
         }
     }
