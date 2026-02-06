@@ -132,6 +132,32 @@ final class SupabaseService: Sendable {
         }
     }
 
+    func fetchProductsByIds(_ ids: [UUID]) async -> [RemoteProduct] {
+        guard isConfigured, !ids.isEmpty else { return [] }
+
+        // Supabase uses "in" filter with parentheses format
+        let idList = ids.map { "\"\($0.uuidString)\"" }.joined(separator: ",")
+        let urlString = "\(projectUrl)/rest/v1/clothing_items?select=*&id=in.(\(idList))"
+
+        guard let url = URL(string: urlString) else { return [] }
+
+        var request = URLRequest(url: url)
+        request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                print("SupabaseService: HTTP error fetching products by IDs")
+                return []
+            }
+            return (try? decoder.decode([RemoteProduct].self, from: data)) ?? []
+        } catch {
+            print("SupabaseService: Error fetching products by IDs: \(error)")
+            return []
+        }
+    }
+
     // MARK: - Users
 
     func fetchUser(deviceId: String) async -> RemoteUser? {
