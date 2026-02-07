@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct ProductCard: View {
     let product: CachedProduct
@@ -97,26 +98,20 @@ struct ProductCard: View {
     }
 }
 
-/// Async image loader with URLCache disk caching.
+/// Async image loader using Kingfisher for robust caching and loading.
 struct CachedImageView: View {
     let url: String
 
     var body: some View {
         if let imageUrl = URL(string: url) {
-            AsyncImage(url: imageUrl) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                case .failure:
-                    placeholder
-                case .empty:
-                    placeholder
-                @unknown default:
+            KFImage(imageUrl)
+                .placeholder {
                     placeholder
                 }
-            }
+                .retry(maxCount: 3, interval: .seconds(2))
+                .onFailure { _ in }
+                .resizable()
+                .aspectRatio(contentMode: .fill)
         } else {
             placeholder
         }
@@ -126,9 +121,7 @@ struct CachedImageView: View {
         Rectangle()
             .fill(Color(.systemGray5))
             .overlay {
-                Image(systemName: "photo")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.gray)
+                ProgressView()
             }
     }
 }
