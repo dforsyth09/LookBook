@@ -132,6 +132,73 @@ final class SupabaseService: Sendable {
         }
     }
 
+    // MARK: - Unseen Products (RPC)
+
+    func fetchUnseenProducts(userId: UUID, category: String, limit: Int = 500) async -> [RemoteProduct] {
+        guard isConfigured else { return [] }
+
+        let urlString = "\(projectUrl)/rest/v1/rpc/get_unseen_products"
+        guard let url = URL(string: urlString) else { return [] }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let body: [String: Any] = [
+            "p_user_id": userId.uuidString,
+            "p_category": category,
+            "p_limit": limit
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+                print("SupabaseService: RPC get_unseen_products failed, status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+                return []
+            }
+            let products = (try? decoder.decode([RemoteProduct].self, from: data)) ?? []
+            print("SupabaseService: RPC returned \(products.count) unseen products for \(category)")
+            return products
+        } catch {
+            print("SupabaseService: Error calling get_unseen_products: \(error)")
+            return []
+        }
+    }
+
+    func recordViewedItems(userId: UUID, productIds: [UUID]) async {
+        guard isConfigured, !productIds.isEmpty else { return }
+
+        let urlString = "\(projectUrl)/rest/v1/viewed_items"
+        guard let url = URL(string: urlString) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(anonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        // Use on_conflict to upsert (update viewed_at if already exists)
+        request.setValue("resolution=merge-duplicates", forHTTPHeaderField: "Prefer")
+
+        let body = productIds.map { productId in
+            [
+                "user_id": userId.uuidString,
+                "product_id": productId.uuidString
+            ]
+        }
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        // Set proper headers for upsert
+        let upsertUrlString = "\(projectUrl)/rest/v1/viewed_items?on_conflict=user_id,product_id"
+        guard let upsertUrl = URL(string: upsertUrlString) else { return }
+        request.url = upsertUrl
+
+        _ = try? await URLSession.shared.data(for: request)
+        print("SupabaseService: Recorded \(productIds.count) viewed items")
+    }
+
     func fetchProductsByIds(_ ids: [UUID]) async -> [RemoteProduct] {
         guard isConfigured, !ids.isEmpty else { return [] }
 

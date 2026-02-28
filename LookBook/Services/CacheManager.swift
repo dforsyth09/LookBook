@@ -219,6 +219,51 @@ final class CacheManager {
         }
     }
 
+    // MARK: - Viewed Items Tracking
+
+    func markAsViewed(_ productId: UUID) {
+        let pid = productId
+        var descriptor = FetchDescriptor<ViewedItem>(
+            predicate: #Predicate { $0.productId == pid }
+        )
+        descriptor.fetchLimit = 1
+        if let _ = try? modelContext.fetch(descriptor).first {
+            return // Already tracked
+        }
+
+        let item = ViewedItem(productId: productId)
+        modelContext.insert(item)
+        try? modelContext.save()
+    }
+
+    func syncViewedItemsToServer() {
+        guard let userId = AuthService.shared.currentUser?.id else { return }
+
+        let descriptor = FetchDescriptor<ViewedItem>(
+            predicate: #Predicate { !$0.syncedToServer }
+        )
+        guard let unsynced = try? modelContext.fetch(descriptor), !unsynced.isEmpty else { return }
+
+        let productIds = unsynced.map { $0.productId }
+        let items = unsynced // capture for marking
+
+        Task {
+            await SupabaseService.shared.recordViewedItems(userId: userId, productIds: productIds)
+            await MainActor.run {
+                for item in items {
+                    item.syncedToServer = true
+                }
+                try? modelContext.save()
+            }
+        }
+    }
+
+    func getViewedProductIds() -> Set<UUID> {
+        let descriptor = FetchDescriptor<ViewedItem>()
+        let items = (try? modelContext.fetch(descriptor)) ?? []
+        return Set(items.map { $0.productId })
+    }
+
     // MARK: - Seeding
 
     func seedBundledProductsIfNeeded() {

@@ -9,6 +9,7 @@ struct LookBookApp: App {
             BagItem.self,
             User.self,
             WishlistItem.self,
+            ViewedItem.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
@@ -78,16 +79,51 @@ struct LookBookApp: App {
         let context = sharedModelContainer.mainContext
         let cacheManager = CacheManager(modelContext: context)
 
-        // Fetch products from all categories in parallel
-        async let dresses = SupabaseService.shared.fetchProducts(category: "dresses", limit: 100)
-        async let tops = SupabaseService.shared.fetchProducts(category: "tops", limit: 100)
-        async let shoes = SupabaseService.shared.fetchProducts(category: "shoes", limit: 100)
-        async let accessories = SupabaseService.shared.fetchProducts(category: "accessories", limit: 100)
-        async let sweaters = SupabaseService.shared.fetchProducts(category: "sweaters", limit: 100)
-        async let blouses = SupabaseService.shared.fetchProducts(category: "blouses", limit: 100)
-        async let plusSize = SupabaseService.shared.fetchProducts(category: "plus-size", limit: 100)
+        let categories = ["dresses", "tops", "shoes", "accessories", "sweaters", "blouses", "plus-size"]
+        let limit = 500
 
-        let allProducts = await dresses + tops + shoes + accessories + sweaters + blouses + plusSize
+        // First, try to use the unseen-items RPC if user is logged in
+        if let userId = AuthService.shared.currentUser?.id {
+            var allProducts: [SupabaseService.RemoteProduct] = []
+            for category in categories {
+                let products = await SupabaseService.shared.fetchUnseenProducts(
+                    userId: userId,
+                    category: category,
+                    limit: limit
+                )
+                allProducts.append(contentsOf: products)
+            }
+
+            if !allProducts.isEmpty {
+                cacheManager.importProducts(allProducts)
+                return
+            }
+            // Fall through to standard fetch if RPC not available yet
+        }
+
+        // Standard fetch with random offset so each launch gets different items
+        var allProducts: [SupabaseService.RemoteProduct] = []
+        for category in categories {
+            // Use a random offset to rotate through the catalog
+            let maxOffset = max(0, 1500 - limit) // conservative estimate per category
+            let randomOffset = Int.random(in: 0...maxOffset)
+            let products = await SupabaseService.shared.fetchProducts(
+                category: category,
+                limit: limit,
+                offset: randomOffset
+            )
+            allProducts.append(contentsOf: products)
+
+            // If random offset returned few results, backfill from offset 0
+            if products.count < limit / 2 {
+                let backfill = await SupabaseService.shared.fetchProducts(
+                    category: category,
+                    limit: limit - products.count,
+                    offset: 0
+                )
+                allProducts.append(contentsOf: backfill)
+            }
+        }
 
         if !allProducts.isEmpty {
             cacheManager.importProducts(allProducts)

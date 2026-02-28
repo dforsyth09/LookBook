@@ -8,6 +8,8 @@ struct FeedScreen: View {
     @State private var currentPage = 0
     @State private var hasMore = true
     @State private var navigateToProduct: CachedProduct?
+    @State private var viewedBuffer: Set<UUID> = []
+    @State private var syncTimer: Timer?
 
     private let theme = ThemeManager.shared
 
@@ -32,6 +34,9 @@ struct FeedScreen: View {
                                     onTap: { navigateToProduct = product }
                                 )
                                 .onAppear {
+                                    // Track this item as viewed
+                                    trackViewed(product)
+
                                     if product.id == products.last?.id {
                                         loadMore()
                                     }
@@ -52,7 +57,14 @@ struct FeedScreen: View {
                 ProductDetailScreen(product: product)
             }
         }
-        .onAppear { loadInitial() }
+        .onAppear {
+            loadInitial()
+            startViewedSyncTimer()
+        }
+        .onDisappear {
+            flushViewedItems()
+            syncTimer?.invalidate()
+        }
         .onChange(of: selectedCategory) { _, _ in
             loadInitial()
         }
@@ -87,5 +99,27 @@ struct FeedScreen: View {
 
     private func addToBag(_ product: CachedProduct) {
         cacheManager.addToBag(product: product, size: "L")
+    }
+
+    // MARK: - View Tracking
+
+    private func trackViewed(_ product: CachedProduct) {
+        viewedBuffer.insert(product.id)
+        cacheManager.markAsViewed(product.id)
+    }
+
+    private func startViewedSyncTimer() {
+        // Sync viewed items to server every 30 seconds
+        syncTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+            Task { @MainActor in
+                flushViewedItems()
+            }
+        }
+    }
+
+    private func flushViewedItems() {
+        guard !viewedBuffer.isEmpty else { return }
+        cacheManager.syncViewedItemsToServer()
+        viewedBuffer.removeAll()
     }
 }
